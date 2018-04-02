@@ -1,0 +1,84 @@
+-- 查看所有数据库命令
+show dbs;
+-- 切换到test数据库,如果test数据库不存在，则创建这个数据库
+use test;
+-- 找到一条文档
+db.yb.findOne();
+-- 删除数据库
+db.dropDatabase();
+-- 删除集合
+db.yb.drop();
+-- 创建集合（显示）
+db.createCollection("yb")
+-- 查询所有集合
+show collections;
+-- 插入文档
+db.yb.insert({title: 'MongoDB',
+    description: 'MongoDB description',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 100
+})
+--- 或者save方法，如下所示：
+db.yb.save({title: 'MongoDB2',
+    description: 'MongoDB description2',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 1001
+})
+-- 查找集合中所有文档内容
+db.yb.find();
+-- 3.2版本后还可以有如下两种方法插入文档：
+1）insertOne（插入一条）
+db.yb.insertOne({title: 'MongoDB3',
+    description: 'MongoDB description3',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 1002
+})
+2）insertMany（插入多条）
+db.yb.insertMany([
+{title: 'MongoDB4',
+    description: 'MongoDB description4',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 1002
+},
+{title: 'MongoDB5',
+    description: 'MongoDB description5',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 1002
+}
+]);
+-- 以一种更为美观的方式查看文档
+db.yb.find().pretty();
+-- 更新文档（将title为MongoDB的文档更新为title为MongoDB updated
+db.yb.update({'title':'MongoDB'},{$set:{'title':'MongoDB updated'}}) -- 只更新第一条
+db.yb.update({'title':'MongoDB'},{$set:{'title':'MongoDB updated'}},{multi:true}) -- 更新多条文档
+-- save方法可以更新指定的文档
+ObjectId("5abb585ef93111be53988be6")
+db.yb.save(
+{   _id: ObjectId("5abb585ef93111be53988be6"),
+    title: 'MongoDB555',
+    description: 'MongoDB description5555',
+    by: 'yb',
+    url: 'it4u.site',
+    tags: ['mongodb', 'NoSQL'],
+    likes: 1002444
+}
+);
+-- 3.2版本后还可以有如下两种方法更新文档：
+1）updateOne
+db.yb.updateOne({'title':'MongoDB'},{$set:{'title':'MongoDB updated'}}) -- 更新一条
+2）updateMany
+db.yb.updateMany({'title':'MongoDB'},{$set:{'title':'MongoDB updated'}}) -- 更新多条
+-- 删除指定文档
+db.yb.remove({'title':'MongoDB'}) -- 删除所有包含title为MongoDB的文档
+db.yb.remove({'title':'MongoDB'},{justOne:true}) -- 删除一条包含title为MongoDB的文档
+db.yb.remove({}); -- 删除所有文档

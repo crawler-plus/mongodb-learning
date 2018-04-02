@@ -1,0 +1,82 @@
+-- mongoDB 关系的实例
+举例：用户和地址之间是一对多的关系，一个用户可以有多个地址，一个地址属于一个用户
+创建如下文档结构
+db.address.save({
+                   "building": "China somewhere",
+                   "pincode": 123456,
+                   "city": "BJ"
+})
+db.user.save({
+                "name": "yb",
+                "contact": "123456789",
+                "birthday": "01-01-1991",
+                "address_ids": [
+                    ObjectId("5abc587b789cfcc4c8b60f7d")
+                ]
+})
+// 假定上面的用户和地址是关联上的
+// 可以通过下面代码获取用户详细地址信息
+var result = db.user.findOne({"name":"yb"},{"address_ids":1})
+var addresses = db.address.find({"_id":{"$in":result["address_ids"]}})
+adresses
+
+数据库引用
+创建一个集合，存储关系
+db.user_address_relations.save(
+{
+   "address": {
+   "$ref": "address",
+   "$id": ObjectId("5abc587b789cfcc4c8b60f7d"),
+   "$db": "test"},
+   "contact": "123456789",
+   "dob": "01-01-1991",
+   "name": "yb"
+}
+);
+-- 获取用户地址的详细信息
+var user = db.user_address_relations.findOne({"name":"yb"})
+var dbRef = user.address
+db[dbRef.$ref].findOne({"_id":(dbRef.$id)})
+
+覆盖索引查询
+创建一个集合
+db.user_index_test.save(
+{
+   "contact": "123456789",
+   "dob": "01-01-1991",
+   "gender": "M",
+   "name": "yb",
+   "user_name": "yb"
+}
+);
+-- 对 gender 和 user_name 创建联合索引
+db.user_index_test.ensureIndex({gender:1,user_name:1})
+-- 索引会覆盖如下查询，因为包括_id字段
+db.user_index_test.find({gender:"M"},{user_name:1,_id:0})
+-- 索引不会覆盖如下查询，因为不包括_id字段
+db.user_index_test.find({gender:"M"},{user_name:1})
+
+查询分析(explain)
+db.yb.find().pretty().explain()
+
+正则表达式
+db.yb.find({"title" : {$regex:"MongoDB"}}).pretty();
+等价于
+db.yb.find({"title" : /MongoDB/}).pretty();
+数组元素中使用方式
+db.yb.find({tags:{$regex:"mongo"}})
+
+固定集合（Capped Collections）
+-- 创建固定集合
+db.createCollection("cappedLogCollection",{capped:true,size:10000})
+-- 判断是否为固定集合
+db.cappedLogCollection.isCapped()
+-- 将已存在的集合转换为固定集合
+db.runCommand({"convertToCapped":"user",size:10000})
+
+属性1:对固定集合进行插入速度极快
+属性2:按照插入顺序的查询输出速度极快
+属性3:能够在插入最新数据时,淘汰最早的数据
+用法
+用法1:储存日志信息
+用法2:缓存一些少量的文档

@@ -1,0 +1,7 @@
+-- 指定数据库
+mongod --dbpath d:\data\db
+db命令可以查看当前数据库
+-- 向yb集合中插入一条数据
+db.yb.insert({x:10})
+-- 查找yb集合中的数据
+db.yb.find()

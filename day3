@@ -1,0 +1,83 @@
+-- 查询文档
+db.yb.find().pretty();
+-- 查询单个文档
+db.yb.findOne();
+-- 按照条件查询
+db.yb.find({"by":"yb"}).pretty()
+db.yb.find({"likes":{$gte:50}}).pretty()
+db.yb.find({"likes":{$gt:50}}).pretty()
+db.yb.find({"likes":{$lte:50}}).pretty()
+db.yb.find({"likes":{$lt:50}}).pretty()
+db.yb.find({"likes" : {$lte :100, $gte : 100}}).pretty()
+db.yb.find({"likes" : {$ne :100,}}).pretty()
+db.yb.find({"by":"yb", "url":"it4u.site"}).pretty()  -- 类似于and操作
+db.yb.find({$or:[{"by":"yb"},{"url": "it4u.site"}]}).pretty() -- 类似于or操作
+db.yb.find({"likes": {$gte:50}, $or: [{"by": "yb"},{"url": "it4u.site"}]}).pretty() -- 类似于... and (... or ...)
+
+$type操作符
+Double	1
+String	2
+Object	3
+Array	4
+Binary data	5
+Undefined	6	已废弃。
+Object id	7
+Boolean	8
+Date	9
+Null	10
+Regular Expression	11
+JavaScript	13
+Symbol	14
+JavaScript (with scope)	15
+32-bit integer	16
+Timestamp	17
+64-bit integer	18
+Min key	255	Query with -1.
+Max key	127
+
+db.yb.find({"title" : {$type : 2}}).pretty() -- 获取文档中title类型为String的数据
+
+Limit与Skip
+db.yb.find().limit().pretty() -- 查询所有数据
+db.yb.find().limit(2).pretty() -- 查询2条数据
+db.yb.find({},{"title":1,_id:0}).limit(1).skip(1).pretty() -- 意思是跳过第一条数据，显示第二条数据
+
+sort排序
+db.yb.find({},{"title":1,_id:0}).sort({"likes":-1}).pretty() -- 只查找文档中包含title的数据，按照likes降序排列
+db.yb.find({},{"title":1,_id:0}).sort({"likes":1}).pretty() -- 只查找文档中包含title的数据，按照likes升序排列
+
+ensureIndex()创建索引
+db.yb.ensureIndex({"title":1}) -- 为title创建索引
+
+aggregate()聚合
+db.yb.aggregate([{$group : {_id : "$by", num_tutorial : {$sum : 1}}}]) -- 类似于select by, count(*) from yb group by by
+db.yb.aggregate([{$group : {_id : "$by", num_tutorial : {$sum : "$likes"}}}]) -- 类似于select by, sum(likes) from yb group by by
+db.yb.aggregate([{$group : {_id : "$by", num_tutorial : {$avg : "$likes"}}}]) -- 类似于select by, avg(likes) from yb group by by
+db.yb.aggregate([{$group : {_id : "$by", num_tutorial : {$min : "$likes"}}}]) -- 类似于select by, min(likes) from yb group by by
+db.yb.aggregate([{$group : {_id : "$by", num_tutorial : {$max : "$likes"}}}]) -- 类似于select by, max(likes) from yb group by by
+db.yb.aggregate([{$group : {_id : "$by", first_likes : {$first : "$likes"}}}]) -- 根据by进行分组，取出每一个分组第一个likes的值
+db.yb.aggregate([{$group : {_id : "$by", last_likes : {$last : "$likes"}}}]) -- 根据by进行分组，取出每一个分组最后一个likes的值
+
+管道
+-- 只查出_id, title, by字段
+db.yb.aggregate(
+    { $project : {
+        title : 1 ,
+        by : 1 ,
+    }}
+);
+-- 忽略_id字段
+db.yb.aggregate(
+    { $project : {
+        _id : 0 ,
+        title : 1 ,
+        by : 1
+}});
+-- 先过滤出likes大于50小于等于10000的数据，再交给下一个管道，进行分组求个数
+db.yb.aggregate( [
+                        { $match : { likes : { $gt : 50, $lte : 10000 } } },
+                        { $group: { _id: null, count: { $sum: 1 } } }
+                       ] );
+-- 前5个文档被过滤
+db.yb.aggregate(
+    { $skip : 5 });
